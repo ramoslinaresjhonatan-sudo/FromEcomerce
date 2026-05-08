@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react'
 import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
-
-const API_PROD = 'http://localhost:8000/api/productos/'
-const API_CAT  = 'http://localhost:8000/api/categorias/'
+import api from '../../services/api'
+import axios from 'axios'
 
 export default function Productos() {
   const [items, setItems]               = useState([])
@@ -32,15 +31,15 @@ export default function Productos() {
 
   /* ── Fetch ── */
   const loadProducts = () => {
-    const p = new URLSearchParams()
-    if (search) p.set('q', search)
-    fetch(`${API_PROD}?${p}`)
-      .then(r => r.json())
-      .then(data => setItems(data))
+    api.get('/productos/', { params: { q: search } })
+      .then(resp => setItems(resp.data))
+      .catch(() => setItems([]))
   }
 
   const loadCats = () => {
-    fetch(API_CAT).then(r => r.json()).then(setTodasCat)
+    api.get('/categorias/')
+      .then(resp => setTodasCat(resp.data))
+      .catch(() => setTodasCat([]))
   }
 
   useEffect(() => { loadCats() }, [])
@@ -74,25 +73,19 @@ export default function Productos() {
   const uploadImagesToImgBB = async () => {
     const uploadedUrls = []
     
-    // Upload new files
     for (const file of selectedFiles) {
       const formData = new FormData()
       formData.append('image', file)
       try {
-        const resp = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-          method: 'POST',
-          body: formData
-        })
-        const data = await resp.json()
-        if (data.success) {
-          uploadedUrls.push(data.data.url)
+        const resp = await axios.post(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, formData)
+        if (resp.data.success) {
+          uploadedUrls.push(resp.data.data.url)
         }
       } catch (err) {
         console.error("Error uploading image:", err)
       }
     }
     
-    // Combine with existing images that were NOT removed
     return [...existingImages, ...uploadedUrls]
   }
 
@@ -104,49 +97,36 @@ export default function Productos() {
       showToast('Guardando producto e imágenes...', 'info')
       const allImageUrls = await uploadImagesToImgBB()
       
-      const endpoint = editId ? `${API_PROD}${editId}/` : API_PROD
-      const method   = editId ? 'PUT' : 'POST'
+      const endpoint = editId ? `/productos/${editId}/` : '/productos/'
+      const method   = editId ? 'put' : 'post'
       
-      const resp = await fetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre,
-          url: allImageUrls[0] || '', // Usamos la primera como principal
-          precio: parseFloat(precio) || 0,
-          descripcion,
-          sku,
-          unidad_medida: unidadMedida,
-          stock_inicial: parseInt(stockInicial) || 0,
-          proveedor,
-          categorias: selectedCats,
-          imagenes_urls: allImageUrls
-        })
+      await api[method](endpoint, {
+        nombre,
+        url: allImageUrls[0] || '', 
+        precio: parseFloat(precio) || 0,
+        descripcion,
+        sku,
+        unidad_medida: unidadMedida,
+        stock_inicial: parseInt(stockInicial) || 0,
+        proveedor,
+        categorias: selectedCats,
+        imagenes_urls: allImageUrls
       })
-      
-      const data = await resp.json()
-      if (!resp.ok) {
-        let msg = 'Error al guardar'
-        if (data.nombre) msg = 'Ya existe un producto con ese nombre.'
-        else if (typeof data === 'object') msg = JSON.stringify(data)
-        else msg = data
-        throw new Error(msg)
-      }
       
       showToast(editId ? 'Producto actualizado' : 'Producto guardado', 'success')
       cancelEdit()
       loadProducts()
     } catch (err) {
-      showToast(err.message, 'error')
+      const msg = err.response?.data?.nombre ? 'Ya existe un producto con ese nombre.' : (err.response?.data ? JSON.stringify(err.response.data) : err.message)
+      showToast(msg, 'error')
     }
   }
 
   /* ── Toggle estado ── */
   const toggleEstado = (id) => {
-    fetch(`${API_PROD}${id}/toggle_estado/`, { method: 'POST' })
-      .then(r => r.json())
-      .then(data => {
-        showToast(data.estado ? 'Producto reactivado' : 'Producto desactivado', 'info');
+    api.post(`/productos/${id}/toggle_estado/`)
+      .then(resp => {
+        showToast(resp.data.estado ? 'Producto reactivado' : 'Producto desactivado', 'info');
         loadProducts();
       })
       .catch(() => showToast('Error al cambiar estado', 'error'))
@@ -155,7 +135,7 @@ export default function Productos() {
   /* ── Delete permanente ── */
   const deletePermanent = (id, nombre) => {
     if (!confirm(`¿Eliminar permanentemente "${nombre}"?`)) return
-    fetch(`${API_PROD}${id}/`, { method: 'DELETE' })
+    api.delete(`/productos/${id}/`)
       .then(() => {
         showToast('Producto eliminado permanentemente', 'success');
         loadProducts();

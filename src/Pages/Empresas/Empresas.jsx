@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
-
-const API = 'http://localhost:8000/api/tiendas/'
+import api from '../../services/api'
 
 export default function Empresas() {
   const [items, setItems]       = useState([])
@@ -16,19 +15,10 @@ export default function Empresas() {
   const [direccion, setDir]     = useState('')
   const [editId, setEditId]     = useState(null)
 
-  const token = localStorage.getItem('access_token')
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  }
-
   /* ── Fetch ── */
   const load = () => {
-    const params = new URLSearchParams()
-    if (search) params.set('q', search)
-    fetch(`${API}?${params}`, { headers })
-      .then(r => r.json())
-      .then(data => setItems(Array.isArray(data) ? data : []))
+    api.get('/tiendas/', { params: { q: search } })
+      .then(resp => setItems(Array.isArray(resp.data) ? resp.data : []))
       .catch(() => setItems([]))
   }
 
@@ -42,35 +32,30 @@ export default function Empresas() {
       return
     }
     try {
-      const url = editId ? `${API}${editId}/` : API
-      const method = editId ? 'PUT' : 'POST'
-      const resp = await fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify({
-          nombre,
-          nit,
-          nro_corporativo: razonSocial,
-          correo,
-          telefono,
-          direccion
-        })
+      const endpoint = editId ? `/tiendas/${editId}/` : '/tiendas/'
+      const method = editId ? 'put' : 'post'
+      
+      await api[method](endpoint, {
+        nombre,
+        nit,
+        nro_corporativo: razonSocial,
+        correo,
+        telefono,
+        direccion
       })
-      const data = await resp.json()
-      if (!resp.ok) throw new Error(JSON.stringify(data))
 
       showToast(editId ? 'Empresa actualizada correctamente' : 'Empresa registrada correctamente', 'success')
       cancelEdit()
       load()
     } catch (err) {
-      showToast(err.message, 'error')
+      showToast(err.response?.data ? JSON.stringify(err.response.data) : err.message, 'error')
     }
   }
 
   /* ── Delete ── */
   const deleteItem = (id, name) => {
     if (!confirm(`¿Eliminar la empresa "${name}"? Esta acción no se puede deshacer.`)) return
-    fetch(`${API}${id}/`, { method: 'DELETE', headers })
+    api.delete(`/tiendas/${id}/`)
       .then(() => {
         showToast('Empresa eliminada correctamente', 'success')
         load()

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
-
-const API = 'http://localhost:8000/api/categorias/'
+import api from '../../services/api'
+import axios from 'axios'
 
 export default function Categorias() {
   const [items, setItems]       = useState([])
@@ -27,13 +27,11 @@ export default function Categorias() {
     }
   }
 
-  /* ── Fetch (se re-ejecuta al cambiar búsqueda o filtro) ── */
+  /* ── Fetch ── */
   const load = () => {
-    const params = new URLSearchParams()
-    if (search) params.set('q', search)
-    fetch(`${API}?${params}`)
-      .then(r => r.json())
-      .then(data => setItems(data))
+    api.get('/categorias/', { params: { q: search } })
+      .then(resp => setItems(resp.data))
+      .catch(() => setItems([]))
   }
 
   useEffect(() => { load() }, [search])
@@ -48,48 +46,36 @@ export default function Categorias() {
       if (selectedFile) {
         const formData = new FormData()
         formData.append('image', selectedFile)
-        const apiKey = 'a224f36313d7c8d81307b1d21747b9be'
-        const bbResp = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-          method: 'POST',
-          body: formData
-        })
-        const bbData = await bbResp.json()
-        if (bbData.success) finalImgUrl = bbData.data.url
+        const apiKey = import.meta.env.VITE_IMGBB_API_KEY
+        const bbResp = await axios.post(`https://api.imgbb.com/1/upload?key=${apiKey}`, formData)
+        if (bbResp.data.success) finalImgUrl = bbResp.data.data.url
       }
 
-      const url  = editId ? `${API}${editId}/` : API
-      const method = editId ? 'PUT' : 'POST'
-      const resp = await fetch(url, {
-        method,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        },
-        body: JSON.stringify({ nombre, descripcion, imagen_url: finalImgUrl })
+      const endpoint = editId ? `/categorias/${editId}/` : '/categorias/'
+      const method = editId ? 'put' : 'post'
+      
+      const resp = await api[method](endpoint, { 
+        nombre, 
+        descripcion, 
+        imagen_url: finalImgUrl 
       })
-
-      const data = await resp.json()
-      if (!resp.ok) {
-        const msg = data.nombre ? 'Ya existe una categoría con ese nombre.' : JSON.stringify(data)
-        throw new Error(msg)
-      }
 
       showToast(editId ? 'Categoría actualizada' : 'Categoría guardada', 'success')
       cancelEdit()
       load()
     } catch (err) {
-      showToast(err.message, 'error')
+      const msg = err.response?.data?.nombre ? 'Ya existe una categoría con ese nombre.' : (err.response?.data ? JSON.stringify(err.response.data) : err.message)
+      showToast(msg, 'error')
     } finally {
       setIsUploading(false)
     }
   }
 
-  /* ── Toggle estado (soft delete / reactivar) ── */
+  /* ── Toggle estado ── */
   const toggleEstado = (id) => {
-    fetch(`${API}${id}/toggle_estado/`, { method: 'POST' })
-      .then(r => r.json())
-      .then(data => {
-        showToast(data.estado ? 'Categoría reactivada' : 'Categoría desactivada', 'info');
+    api.post(`/categorias/${id}/toggle_estado/`)
+      .then(resp => {
+        showToast(resp.data.estado ? 'Categoría reactivada' : 'Categoría desactivada', 'info');
         load();
       })
       .catch(() => showToast('Error al cambiar estado', 'error'))
@@ -98,7 +84,7 @@ export default function Categorias() {
   /* ── Delete permanente ── */
   const deletePermanent = (id, nombre) => {
     if (!confirm(`¿Eliminar permanentemente "${nombre}"? Esta acción no se puede deshacer.`)) return
-    fetch(`${API}${id}/`, { method: 'DELETE' })
+    api.delete(`/categorias/${id}/`)
       .then(() => {
         showToast('Categoría eliminada permanentemente', 'success');
         load();

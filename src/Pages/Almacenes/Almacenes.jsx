@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react'
 import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
-
-const API = 'http://localhost:8000/api/almacenes/'
-const API_SUC = 'http://localhost:8000/api/sucursales/'
-const API_USU = 'http://localhost:8000/api/usuarios/'
+import api from '../../services/api'
 
 export default function Almacenes() {
   const [items, setItems]       = useState([])
@@ -19,25 +16,16 @@ export default function Almacenes() {
   const [editId, setEditId]     = useState(null)
   const [showInactive, setShowInactive] = useState(false)
 
-  const token = localStorage.getItem('access_token')
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  }
-
   /* ── Fetch ── */
   const load = () => {
-    const params = new URLSearchParams()
-    if (search) params.set('q', search)
-    fetch(`${API}?${params}`, { headers })
-      .then(r => r.json())
-      .then(data => setItems(Array.isArray(data) ? data : []))
+    api.get('/almacenes/', { params: { q: search } })
+      .then(resp => setItems(Array.isArray(resp.data) ? resp.data : []))
       .catch(() => setItems([]))
   }
 
   const loadExtras = () => {
-    fetch(API_SUC, { headers }).then(r => r.json()).then(data => setSuc(data))
-    fetch(API_USU, { headers }).then(r => r.json()).then(data => setUsu(data))
+    api.get('/sucursales/').then(resp => setSuc(resp.data))
+    api.get('/usuarios/').then(resp => setUsu(resp.data))
   }
 
   useEffect(() => { load() }, [search])
@@ -51,35 +39,29 @@ export default function Almacenes() {
       return
     }
     try {
-      const url = editId ? `${API}${editId}/` : API
-      const method = editId ? 'PUT' : 'POST'
-      const resp = await fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify({ 
-          nombre, 
-          ubicacion, 
-          sucursal: sucursalId,
-          responsable: responsableId || null
-        })
+      const endpoint = editId ? `/almacenes/${editId}/` : '/almacenes/'
+      const method = editId ? 'put' : 'post'
+      
+      await api[method](endpoint, { 
+        nombre, 
+        ubicacion, 
+        sucursal: sucursalId,
+        responsable: responsableId || null
       })
-      const data = await resp.json()
-      if (!resp.ok) throw new Error(JSON.stringify(data))
 
       showToast(editId ? 'Almacén actualizado correctamente' : 'Almacén registrado correctamente', 'success')
       cancelEdit()
       load()
     } catch (err) {
-      showToast(err.message, 'error')
+      showToast(err.response?.data ? JSON.stringify(err.response.data) : err.message, 'error')
     }
   }
 
   /* ── Toggle estado ── */
   const toggleEstado = (id) => {
-    fetch(`${API}${id}/toggle_estado/`, { method: 'POST', headers })
-      .then(r => r.json())
-      .then(data => {
-        showToast(data.estado ? 'Almacén reactivado' : 'Almacén desactivado', 'info')
+    api.post(`/almacenes/${id}/toggle_estado/`)
+      .then(resp => {
+        showToast(resp.data.estado ? 'Almacén reactivado' : 'Almacén desactivado', 'info')
         load()
       })
       .catch(() => showToast('Error al cambiar estado', 'error'))
@@ -88,7 +70,7 @@ export default function Almacenes() {
   /* ── Delete ── */
   const deleteItem = (id, name) => {
     if (!confirm(`¿Eliminar el almacén "${name}"? Esta acción no se puede deshacer.`)) return
-    fetch(`${API}${id}/`, { method: 'DELETE', headers })
+    api.delete(`/almacenes/${id}/`)
       .then(() => {
         showToast('Almacén eliminado correctamente', 'success')
         load()

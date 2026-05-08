@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
-
-const API = 'http://localhost:8000/api/suscripciones/'
+import api from '../../services/api'
 
 export default function Suscripciones() {
   const [items, setItems]       = useState([])
@@ -14,19 +13,10 @@ export default function Suscripciones() {
   const [editId, setEditId]     = useState(null)
   const [showInactive, setShowInactive] = useState(false)
 
-  const token = localStorage.getItem('access_token')
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  }
-
   /* ── Fetch ── */
   const load = () => {
-    const params = new URLSearchParams()
-    if (search) params.set('q', search)
-    fetch(`${API}?${params}`, { headers })
-      .then(r => r.json())
-      .then(data => setItems(Array.isArray(data) ? data : []))
+    api.get('/suscripciones/', { params: { q: search } })
+      .then(resp => setItems(Array.isArray(resp.data) ? resp.data : []))
       .catch(() => setItems([]))
   }
 
@@ -40,33 +30,25 @@ export default function Suscripciones() {
       return
     }
     try {
-      const url = editId ? `${API}${editId}/` : API
-      const method = editId ? 'PUT' : 'POST'
-      const resp = await fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify({ nombre, descripcion, precio: parseFloat(precio) })
-      })
-      const data = await resp.json()
-      if (!resp.ok) {
-        const msg = data.nombre ? 'Ya existe una suscripción con ese nombre.' : JSON.stringify(data)
-        throw new Error(msg)
-      }
+      const endpoint = editId ? `/suscripciones/${editId}/` : '/suscripciones/'
+      const method = editId ? 'put' : 'post'
+      
+      await api[method](endpoint, { nombre, descripcion, precio: parseFloat(precio) })
 
       showToast(editId ? 'Suscripción actualizada' : 'Suscripción creada', 'success')
       cancelEdit()
       load()
     } catch (err) {
-      showToast(err.message, 'error')
+      const msg = err.response?.data?.nombre ? 'Ya existe una suscripción con ese nombre.' : (err.response?.data ? JSON.stringify(err.response.data) : err.message)
+      showToast(msg, 'error')
     }
   }
 
   /* ── Toggle estado ── */
   const toggleEstado = (id) => {
-    fetch(`${API}${id}/toggle_estado/`, { method: 'POST', headers })
-      .then(r => r.json())
-      .then(data => {
-        showToast(data.estado ? 'Suscripción reactivada' : 'Suscripción desactivada', 'info')
+    api.post(`/suscripciones/${id}/toggle_estado/`)
+      .then(resp => {
+        showToast(resp.data.estado ? 'Suscripción reactivada' : 'Suscripción desactivada', 'info')
         load()
       })
       .catch(() => showToast('Error al cambiar estado', 'error'))
@@ -75,7 +57,7 @@ export default function Suscripciones() {
   /* ── Delete permanente ── */
   const deletePermanent = (id, nombre) => {
     if (!confirm(`¿Eliminar permanentemente "${nombre}"? Esta acción no se puede deshacer.`)) return
-    fetch(`${API}${id}/`, { method: 'DELETE', headers })
+    api.delete(`/suscripciones/${id}/`)
       .then(() => {
         showToast('Suscripción eliminada permanentemente', 'success')
         load()

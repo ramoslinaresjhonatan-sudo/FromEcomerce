@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react'
 import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
-
-const API_ROLES = 'http://localhost:8000/api/roles/'
-const API_PERMISOS = 'http://localhost:8000/api/permisos/'
+import api from '../../services/api'
 
 export default function RolesPermisos() {
   const [activeTab, setActiveTab] = useState('roles') // 'roles' or 'permisos'
@@ -18,21 +16,12 @@ export default function RolesPermisos() {
   const [detalle, setDetalle] = useState('')
   const [editId, setEditId] = useState(null)
 
-  const token = localStorage.getItem('access_token')
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  }
-
-  const API = activeTab === 'roles' ? API_ROLES : API_PERMISOS
+  const endpoint = activeTab === 'roles' ? '/roles/' : '/permisos/'
 
   /* ── Fetch ── */
   const load = () => {
-    const params = new URLSearchParams()
-    if (search) params.set('q', search)
-    fetch(`${API}?${params}`, { headers })
-      .then(r => r.json())
-      .then(data => setItems(Array.isArray(data) ? data : []))
+    api.get(endpoint, { params: { q: search } })
+      .then(resp => setItems(Array.isArray(resp.data) ? resp.data : []))
       .catch(() => setItems([]))
   }
 
@@ -46,33 +35,25 @@ export default function RolesPermisos() {
       return
     }
     try {
-      const url = editId ? `${API}${editId}/` : API
-      const method = editId ? 'PUT' : 'POST'
-      const resp = await fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify({ nombre, detalle })
-      })
-      const data = await resp.json()
-      if (!resp.ok) {
-        if (data.nombre) throw new Error('Ya existe un registro con este código/nombre.')
-        throw new Error(JSON.stringify(data))
-      }
+      const url = editId ? `${endpoint}${editId}/` : endpoint
+      const method = editId ? 'put' : 'post'
+      
+      await api[method](url, { nombre, detalle })
 
       showToast(editId ? 'Actualizado correctamente' : 'Registrado correctamente', 'success')
       cancelEdit()
       load()
     } catch (err) {
-      showToast(err.message, 'error')
+      const msg = err.response?.data?.nombre ? 'Ya existe un registro con este código/nombre.' : (err.response?.data ? JSON.stringify(err.response.data) : err.message)
+      showToast(msg, 'error')
     }
   }
 
   /* ── Toggle estado ── */
   const toggleEstado = (id) => {
-    fetch(`${API}${id}/toggle_estado/`, { method: 'POST', headers })
-      .then(r => r.json())
-      .then(data => {
-        showToast(data.estado ? 'Reactivado' : 'Desactivado', 'info')
+    api.post(`${endpoint}${id}/toggle_estado/`)
+      .then(resp => {
+        showToast(resp.data.estado ? 'Reactivado' : 'Desactivado', 'info')
         load()
       })
       .catch(() => showToast('Error al cambiar estado', 'error'))
@@ -81,7 +62,7 @@ export default function RolesPermisos() {
   /* ── Delete ── */
   const deleteItem = (id, name) => {
     if (!confirm(`¿Eliminar permanentemente "${name}"? Esta acción no se puede deshacer.`)) return
-    fetch(`${API}${id}/`, { method: 'DELETE', headers })
+    api.delete(`${endpoint}${id}/`)
       .then(() => {
         showToast('Eliminado correctamente', 'success')
         load()

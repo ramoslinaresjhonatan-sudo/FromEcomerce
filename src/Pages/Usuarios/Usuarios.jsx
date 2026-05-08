@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
-
-const API = 'http://localhost:8000/api/usuarios/'
+import api from '../../services/api'
 
 export default function Usuarios() {
   const [items, setItems]               = useState([])
@@ -20,11 +19,9 @@ export default function Usuarios() {
 
   /* ── Fetch ── */
   const load = () => {
-    const p = new URLSearchParams()
-    if (search) p.set('q', search)
-    fetch(`${API}?${p}`)
-      .then(r => r.json())
-      .then(data => setItems(data))
+    api.get('/usuarios/', { params: { q: search } })
+      .then(resp => setItems(resp.data))
+      .catch(() => setItems([]))
   }
 
   useEffect(() => { load() }, [search])
@@ -56,60 +53,42 @@ export default function Usuarios() {
         email,
       }
       if (password) body.password = password
-      fetch(`${API}${editId}/`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      })
-      .then(async r => {
-        const data = await r.json()
-        if (!r.ok) {
-          const msg = data.email ? 'Este correo ya está registrado.' : JSON.stringify(data)
-          throw new Error(msg)
-        }
-        return data
-      })
-      .then(() => {
-        showToast('Datos de empleado actualizados', 'success');
-        cancelEdit(); 
-        load();
-      })
-      .catch(err => showToast(err.message, 'error'))
+      
+      api.patch(`/usuarios/${editId}/`, body)
+        .then(() => {
+          showToast('Datos de empleado actualizados', 'success');
+          cancelEdit(); 
+          load();
+        })
+        .catch(err => {
+          const msg = err.response?.data?.email ? 'Este correo ya está registrado.' : (err.response?.data ? JSON.stringify(err.response.data) : err.message)
+          showToast(msg, 'error')
+        })
     } else {
       /* Create */
-      fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email, password,
-          first_name: firstName,
-          last_name: lastName,
-          apellido_m: apellidoM,
-        })
-      })
-      .then(async r => {
-        const data = await r.json()
-        if (!r.ok) {
-          const msg = data.email ? 'Este correo ya está registrado.' : JSON.stringify(data)
-          throw new Error(msg)
-        }
-        return data
+      api.post('/usuarios/', {
+        email, password,
+        first_name: firstName,
+        last_name: lastName,
+        apellido_m: apellidoM,
       })
       .then(() => {
         showToast('Empleado registrado exitosamente', 'success');
         cancelEdit(); 
         load();
       })
-      .catch(err => showToast(err.message, 'error'))
+      .catch(err => {
+        const msg = err.response?.data?.email ? 'Este correo ya está registrado.' : (err.response?.data ? JSON.stringify(err.response.data) : err.message)
+        showToast(msg, 'error')
+      })
     }
   }
 
   /* ── Toggle estado (is_active) ── */
   const toggleEstado = (id) => {
-    fetch(`${API}${id}/toggle_estado/`, { method: 'POST' })
-      .then(r => r.json())
-      .then(data => {
-        showToast(data.is_active ? 'Empleado reactivado' : 'Empleado desactivado', 'info');
+    api.post(`/usuarios/${id}/toggle_estado/`)
+      .then(resp => {
+        showToast(resp.data.is_active ? 'Empleado reactivado' : 'Empleado desactivado', 'info');
         load();
       })
       .catch(() => showToast('Error al cambiar estado', 'error'))
@@ -118,7 +97,7 @@ export default function Usuarios() {
   /* ── Delete permanente ── */
   const deletePermanent = (id, name) => {
     if (!confirm(`¿Eliminar permanentemente a "${name}"?`)) return
-    fetch(`${API}${id}/`, { method: 'DELETE' })
+    api.delete(`/usuarios/${id}/`)
       .then(() => {
         showToast('Empleado eliminado del sistema', 'success');
         load();

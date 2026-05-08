@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
-
-const API = 'http://localhost:8000/api/archivos/'
+import api from '../../services/api'
+import axios from 'axios'
 
 export default function Archivos() {
   const [items, setItems] = useState([])
@@ -19,19 +19,11 @@ export default function Archivos() {
   const [isUploading, setIsUploading] = useState(false)
 
   const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY
-  const token = localStorage.getItem('access_token')
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  }
 
   /* ── Fetch ── */
   const load = () => {
-    const params = new URLSearchParams()
-    if (search) params.set('q', search)
-    fetch(`${API}?${params}`, { headers })
-      .then(r => r.json())
-      .then(data => setItems(Array.isArray(data) ? data : []))
+    api.get('/archivos/', { params: { q: search } })
+      .then(resp => setItems(Array.isArray(resp.data) ? resp.data : []))
       .catch(() => setItems([]))
   }
 
@@ -62,36 +54,21 @@ export default function Archivos() {
     }
 
     setIsUploading(true)
-    let url = ''
+    let fileUrl = ''
 
     try {
       if (tipo === 'FOTO') {
         const formData = new FormData()
         formData.append('image', file)
-        const respImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-          method: 'POST',
-          body: formData
-        })
-        const dataImg = await respImg.json()
-        if (!dataImg.success) throw new Error('Error al subir imagen')
-        url = dataImg.data.url
+        const respImg = await axios.post(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, formData)
+        if (!respImg.data.success) throw new Error('Error al subir imagen')
+        fileUrl = respImg.data.data.url
       } else {
-        // En una implementación real de video se usaría un storage como AWS S3, Cloudinary o Firebase.
-        // Aquí simulamos que el video está subido si el usuario selecciona uno localmente.
         showToast('Advertencia: Subida de videos no soportada en servidor ImgBB. Usando objeto local temporal.', 'info')
-        url = URL.createObjectURL(file)
+        fileUrl = URL.createObjectURL(file)
       }
 
-      const resp = await fetch(API, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ nombre, url, tipo })
-      })
-      
-      if (!resp.ok) {
-        const dataErr = await resp.json()
-        throw new Error(JSON.stringify(dataErr))
-      }
+      await api.post('/archivos/', { nombre, url: fileUrl, tipo })
 
       showToast('Archivo guardado correctamente', 'success')
       setNombre('')
@@ -100,7 +77,7 @@ export default function Archivos() {
       if (fileInputRef.current) fileInputRef.current.value = ''
       load()
     } catch (err) {
-      showToast(err.message, 'error')
+      showToast(err.response?.data ? JSON.stringify(err.response.data) : err.message, 'error')
     } finally {
       setIsUploading(false)
     }
@@ -108,10 +85,9 @@ export default function Archivos() {
 
   /* ── Toggle estado ── */
   const toggleEstado = (id) => {
-    fetch(`${API}${id}/toggle_estado/`, { method: 'POST', headers })
-      .then(r => r.json())
-      .then(data => {
-        showToast(data.estado ? 'Archivo reactivado' : 'Archivo desactivado', 'info')
+    api.post(`/archivos/${id}/toggle_estado/`)
+      .then(resp => {
+        showToast(resp.data.estado ? 'Archivo reactivado' : 'Archivo desactivado', 'info')
         load()
       })
       .catch(() => showToast('Error al cambiar estado', 'error'))
@@ -120,7 +96,7 @@ export default function Archivos() {
   /* ── Delete ── */
   const deleteItem = (id, name) => {
     if (!confirm(`¿Eliminar el archivo "${name}" permanentemente?`)) return
-    fetch(`${API}${id}/`, { method: 'DELETE', headers })
+    api.delete(`/archivos/${id}/`)
       .then(() => {
         showToast('Archivo eliminado', 'success')
         load()
