@@ -1,0 +1,320 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
+
+:root {
+  --orange: var(--app-primary, #F97316);
+  --orange-light: var(--app-primary-light, #FFF5ED);
+  --orange-hover: var(--app-primary-hover, #EA6B0C);
+  --dark: #0F172A;
+  --dark-accent: #1E293B;
+  --muted: #64748B;
+  --border: var(--border, #E2E8F0);
+  --white: var(--bg-sidebar, #FFFFFF);
+  --bg: var(--bg-main, #F8FAFC);
+}
+
+.page {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.container {
+  background: var(--white);
+  width: 100%;
+  max-width: 900px;
+  min-height: 600px;
+  border-radius: 24px;
+  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+}
+
+/* Panel Izquierdo - Resumen */
+.summaryPanel {
+  flex: 0 0 320px;
+  background: var(--dark);
+  color: var(--white);
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.backBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin-bottom: 40px;
+  transition: all 0.3s;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(-4px);
+}
+
+.summaryHeader h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  background: linear-gradient(to right, #fff, #94a3b8);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.summaryHeader p {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.planCard {
+  background: var(--dark-accent);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 20px;
+  margin: 30px 0;
+  box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.3);
+}
+
+.planText {
+  color: var(--orange);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.planName {
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.planLine {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 12px;
+}
+
+.planDesc {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.totalRow {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.totalLabel {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.totalAmount {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--orange);
+}
+
+.trustBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  font-size: 0.8rem;
+  color: #64748b;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Panel Derecho - Formulario */
+.formPanel {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.formPanel h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text, #0F172A);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spacingTop {
+  margin-top: 30px;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inputGroup input {
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fdfdfd;
+  color: var(--dark);
+}
+
+.inputGroup input::placeholder {
+  color: #cbd5e1;
+}
+
+.inputGroup input:focus {
+  outline: none;
+  border-color: var(--orange);
+  background: white;
+  box-shadow: 0 0 0 4px var(--orange-light);
+}
+
+.submitBtn {
+  margin-top: 30px;
+  background: var(--orange);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.4);
+}
+
+.submitBtn:hover {
+  background: var(--orange-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px -8px rgba(249, 115, 22, 0.5);
+}
+
+.submitBtn:active {
+  transform: translateY(-1px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  .container {
+    flex-direction: column;
+    max-width: 550px;
+    border-radius: 32px;
+  }
+
+  .summaryPanel {
+    flex: none;
+    padding: 30px;
+  }
+
+  .formPanel {
+    padding: 30px;
+    max-height: none;
+  }
+
+  .backBtn {
+    margin-bottom: 30px;
+  }
+
+  .planCard {
+    margin: 20px 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .fullWidth {
+    grid-column: span 1;
+  }
+
+  .page {
+    padding: 20px 10px;
+  }
+
+  .container {
+    border-radius: 24px;
+  }
+
+  .summaryPanel {
+      padding: 30px 20px;
+  }
+
+  .formPanel {
+      padding: 30px 20px;
+  }
+
+  .summaryHeader h2 {
+    font-size: 1.6rem;
+  }
+
+  .totalAmount {
+    font-size: 1.8rem;
+  }
+
+  .planName {
+      font-size: 1.4rem;
+  }
+
+  .submitBtn {
+      padding: 14px;
+  }
+}

@@ -1,0 +1,45 @@
+{
+    "planes": [
+        {
+            "id": 1,
+            "nombre": "Básico",
+            "precio": 19,
+            "descripcion": "Ideal para personas que están comenzando su camino digital.",
+            "caracteristicas": [
+                "Acceso ilimitado a productos",
+                "Soporte por correo electrónico",
+                "Actualizaciones mensuales",
+                "1 Usuario"
+            ],
+            "popular": false
+        },
+        {
+            "id": 2,
+            "nombre": "Pro",
+            "precio": 49,
+            "descripcion": "La mejor opción para profesionales y pequeñas empresas en crecimiento.",
+            "caracteristicas": [
+                "Todo lo del plan Básico",
+                "Soporte prioritario 24/7",
+                "Análisis avanzado",
+                "Hasta 5 Usuarios",
+                "Integraciones premium"
+            ],
+            "popular": true
+        },
+        {
+            "id": 3,
+            "nombre": "Empresarial",
+            "precio": 99,
+            "descripcion": "Soluciones personalizadas para grandes volúmenes y equipos.",
+            "caracteristicas": [
+                "Todo lo del plan Pro",
+                "Gerente de cuenta dedicado",
+                "Usuarios ilimitados",
+                "API de acceso total",
+                "Seguridad de nivel bancario"
+            ],
+            "popular": false
+        }
+    ]
+}

@@ -1,0 +1,100 @@
+[
+    {
+        "ion-icon": "cube-outline",
+        "nombre": "Inicio",
+        "grupal": true,
+        "ruta-No-Grupal": "/",
+        "items": [
+            {
+                "ion-icon": "home-outline",
+                "nombre": "Dashboard",
+                "url": "/inicio"
+            }
+        ]
+    },
+    {
+        "ion-icon": "business-outline",
+        "nombre": "Administración",
+        "grupal": true,
+        "ruta-No-Grupal": "/admin",
+        "items": [
+            {
+                "ion-icon": "business-outline",
+                "nombre": "Empresas",
+                "url": "/empresas"
+            },
+            {
+                "ion-icon": "card-outline",
+                "nombre": "Suscripciones",
+                "url": "/suscripciones"
+            },
+            {
+                "ion-icon": "storefront-outline",
+                "nombre": "Sucursales",
+                "url": "/sucursales"
+            },
+            {
+                "ion-icon": "archive-outline",
+                "nombre": "Almacenes",
+                "url": "/almacenes"
+            }
+        ]
+    },
+    {
+        "ion-icon": "cart-outline",
+        "nombre": "Ecommerce",
+        "grupal": true,
+        "ruta-No-Grupal": "/ecommerce",
+        "items": [
+            {
+                "ion-icon": "grid-outline",
+                "nombre": "Categorías",
+                "url": "/categorias"
+            },
+            {
+                "ion-icon": "bag-handle-outline",
+                "nombre": "Productos",
+                "url": "/productos"
+            },
+            {
+                "ion-icon": "people-outline",
+                "nombre": "Clientes",
+                "url": "/clientes"
+            },
+            {
+                "ion-icon": "receipt-outline",
+                "nombre": "Pedidos",
+                "url": "/pedidos"
+            }
+        ]
+    },
+    {
+        "ion-icon": "people-circle-outline",
+        "nombre": "Personas",
+        "grupal": true,
+        "ruta-No-Grupal": "/personas",
+        "items": [
+            {
+                "ion-icon": "people-outline",
+                "nombre": "Usuarios / Empleados",
+                "url": "/usuarios"
+            },
+            {
+                "ion-icon": "key-outline",
+                "nombre": "Roles y Permisos",
+                "url": "/roles-permisos"
+            },
+            {
+                "ion-icon": "image-outline",
+                "nombre": "Archivos",
+                "url": "/archivos"
+            }
+        ]
+    },
+    {
+        "ion-icon": "settings-outline",
+        "nombre": "Configuración",
+        "grupal": false,
+        "ruta-No-Grupal": "/configuracion"
+    }
+]
