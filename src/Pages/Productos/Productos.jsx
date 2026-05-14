@@ -8,6 +8,7 @@ import axios from 'axios'
 export default function Productos() {
   const [items, setItems]               = useState([])
   const [todasCategorias, setTodasCat]  = useState([])
+  const [todasCarac, setTodasCarac]      = useState([])
   const [search, setSearch]             = useState('')
   const [showInactive, setShowInactive] = useState(false)
 
@@ -21,6 +22,7 @@ export default function Productos() {
   const [stockInicial, setStockInicial] = useState('0')
   const [proveedor, setProveedor] = useState('')
   const [selectedCats, setSelCats]= useState([])
+  const [selectedCaracs, setSelCaracs] = useState([])
   const [editId, setEditId]       = useState(null)
   
   /* Image Upload states */
@@ -42,11 +44,24 @@ export default function Productos() {
       .catch(() => setTodasCat([]))
   }
 
-  useEffect(() => { loadCats() }, [])
+  const loadCaracs = () => {
+    api.get('/caracteristicas/')
+      .then(resp => setTodasCarac(resp.data))
+      .catch(() => setTodasCarac([]))
+  }
+
+  useEffect(() => { 
+    loadCats()
+    loadCaracs()
+  }, [])
   useEffect(() => { loadProducts() }, [search])
 
   const handleCatChange = (id) => {
     setSelCats(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id])
+  }
+
+  const handleCaracChange = (id) => {
+    setSelCaracs(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id])
   }
 
   const handleFileChange = (e) => {
@@ -110,6 +125,7 @@ export default function Productos() {
         stock_inicial: parseInt(stockInicial) || 0,
         proveedor,
         categorias: selectedCats,
+        caracteristicas: selectedCaracs,
         imagenes_urls: allImageUrls
       })
       
@@ -154,6 +170,7 @@ export default function Productos() {
     setStockInicial(String(p.stock_inicial || 0))
     setProveedor(p.proveedor || '')
     setSelCats(p.categorias || [])
+    setSelCaracs(p.caracteristicas || [])
     setExistingImages(p.imagenes ? p.imagenes.map(img => img.url) : [])
     setSelectedFiles([])
     setPreviews([])
@@ -171,6 +188,7 @@ export default function Productos() {
     setStockInicial('0')
     setProveedor('')
     setSelCats([])
+    setSelCaracs([])
     setSelectedFiles([])
     setPreviews([])
     setExistingImages([])
@@ -347,6 +365,35 @@ export default function Productos() {
               </div>
             </div>
 
+            {/* Características selector */}
+            <div style={{ marginTop: '1.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Características Compartidas</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {todasCarac.filter(c => c.estado).map(carac => {
+                  const sel = selectedCaracs.includes(carac.id)
+                  return (
+                    <div
+                      key={carac.id}
+                      onClick={() => handleCaracChange(carac.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: sel ? 'rgba(var(--app-primary-rgb, 249,115,22), 0.7)' : 'rgba(255,255,255,0.1)',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '12px',
+                        border: '1px solid var(--border)',
+                        cursor: 'pointer',
+                        color: sel ? '#000' : 'var(--text-primary)',
+                        fontSize: '0.85rem',
+                        transition: 'all 0.3s'
+                      }}
+                    >
+                      {carac.nombre}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
             <div className={Css.actions} style={{ marginTop: '1rem' }}>
               {editId && <button type="button" className={Css.btnReset} onClick={cancelEdit}>Cancelar</button>}
               <button type="submit" className={Css.btnSave}>{editId ? 'Actualizar' : 'Guardar Producto'}</button>
@@ -430,3 +477,4 @@ export default function Productos() {
     </Template>
   )
 }
+
