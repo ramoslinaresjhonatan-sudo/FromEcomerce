@@ -21,6 +21,8 @@ const INITIAL_FORM = {
 export default function Stores() {
   const user = authService.getUser()
   const storeAdminView = isStoreAdmin(user)
+  const userId = user?.id ? String(user.id) : ''
+  const currentCompanyId = String(getCurrentCompanyId(user) || '')
 
   const [items, setItems] = useState([])
   const [companies, setCompanies] = useState([])
@@ -61,12 +63,21 @@ export default function Stores() {
   useEffect(() => {
     if (!storeAdminView || editId) return
 
-    setForm((prev) => ({
-      ...prev,
-      company: String(getCurrentCompanyId(user) || ''),
-      registered_by: String(user?.id || ''),
-    }))
-  }, [storeAdminView, user, editId])
+    setForm((prev) => {
+      const nextCompany = currentCompanyId
+      const nextRegisteredBy = userId
+
+      if (prev.company === nextCompany && prev.registered_by === nextRegisteredBy) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        company: nextCompany,
+        registered_by: nextRegisteredBy,
+      }
+    })
+  }, [storeAdminView, editId, currentCompanyId, userId])
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -76,18 +87,18 @@ export default function Stores() {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    const currentCompanyId = storeAdminView ? getCurrentCompanyId(user) : form.company
+    const selectedCompanyId = storeAdminView ? currentCompanyId : form.company
 
-    if (!currentCompanyId || !form.name.trim()) {
+    if (!selectedCompanyId || !form.name.trim()) {
       showToast('Empresa y nombre de tienda son obligatorios.', 'error')
       return
     }
 
-    const activeCompany = companies.find((company) => String(company.id) === String(currentCompanyId))
+    const activeCompany = companies.find((company) => String(company.id) === String(selectedCompanyId))
     const activePlan = plans.find(
       (plan) => String(plan.id) === String(activeCompany?.current_subscription_plan || activeCompany?.plan_suscripcion_actual_id),
     )
-    const companyStores = items.filter((item) => String(item.company) === String(currentCompanyId))
+    const companyStores = items.filter((item) => String(item.company) === String(selectedCompanyId))
 
     if (!editId && storeAdminView && hasReachedLimit(companyStores.length, activePlan?.store_limit)) {
       showToast('Tu empresa ya alcanzó el límite de tiendas permitido por su plan actual.', 'error')
@@ -95,7 +106,7 @@ export default function Stores() {
     }
 
     const payload = {
-      company: Number(currentCompanyId),
+      company: Number(selectedCompanyId),
       registered_by: storeAdminView ? (user?.id || null) : (form.registered_by ? Number(form.registered_by) : null),
       name: form.name.trim(),
       slug: form.slug.trim() || null,
@@ -134,8 +145,8 @@ export default function Stores() {
   const startEdit = (item) => {
     setEditId(item.id)
     setForm({
-      company: item.company ? String(item.company) : (storeAdminView ? String(getCurrentCompanyId(user) || '') : ''),
-      registered_by: item.registered_by ? String(item.registered_by) : (storeAdminView ? String(user?.id || '') : ''),
+      company: item.company ? String(item.company) : (storeAdminView ? currentCompanyId : ''),
+      registered_by: item.registered_by ? String(item.registered_by) : (storeAdminView ? userId : ''),
       name: item.name || '',
       slug: item.slug || '',
       business_type: item.business_type || '',
@@ -163,7 +174,7 @@ export default function Stores() {
     [users],
   )
 
-  const scopedCompanyId = storeAdminView ? getCurrentCompanyId(user) : ''
+  const scopedCompanyId = storeAdminView ? currentCompanyId : ''
   const activeCompany = companies.find((company) => String(company.id) === String(scopedCompanyId))
   const activePlan = plans.find(
     (plan) => String(plan.id) === String(activeCompany?.current_subscription_plan || activeCompany?.plan_suscripcion_actual_id),
@@ -195,7 +206,7 @@ export default function Stores() {
     : companies
 
   const userOptions = storeAdminView
-    ? users.filter((item) => String(item.id) === String(user?.id))
+    ? users.filter((item) => String(item.id) === userId)
     : users
 
   const currentStoresCount = scopedItems.length

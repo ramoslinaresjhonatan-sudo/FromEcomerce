@@ -94,7 +94,6 @@ const ProductCard = ({ prod, idx, addItem, getProductImage, onQuickView }) => {
 
 const QuickViewModal = ({ prod, onClose, addItem }) => {
   const [activeImg, setActiveImg] = useState(0);
-  useEffect(() => { setActiveImg(0); }, [prod]); // Reset image when product changes
 
   if (!prod) return null;
 
@@ -429,6 +428,7 @@ const Tienda = () => {
       </footer>
       <Carrito />
       <QuickViewModal
+        key={selectedProduct?.id || 'empty'}
         prod={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         addItem={addItem}

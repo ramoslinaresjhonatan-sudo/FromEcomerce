@@ -84,8 +84,8 @@ function App() {
           <Route path="/register"      element={<Register />} />
           <Route path="/inicio"        element={<ProtectedRoute allow={canAccessDashboard}><Inicio /></ProtectedRoute>} />
           <Route path="/configuracion" element={<ProtectedRoute allow={canAccessDashboard}><Configuracion /></ProtectedRoute>} />
-          <Route path="/categorias"    element={<ProtectedRoute allow={isPlatformAdmin}><Categorias /></ProtectedRoute>} />
-          <Route path="/productos"     element={<ProtectedRoute allow={isPlatformAdmin}><Productos /></ProtectedRoute>} />
+          <Route path="/categorias"    element={<ProtectedRoute allow={(user) => isPlatformAdmin(user) || isStoreAdmin(user)}><Categorias /></ProtectedRoute>} />
+          <Route path="/productos"     element={<ProtectedRoute allow={(user) => isPlatformAdmin(user) || isStoreAdmin(user)}><Productos /></ProtectedRoute>} />
           <Route path="/usuarios"      element={<ProtectedRoute allow={isPlatformAdmin}><Usuarios /></ProtectedRoute>} />
           <Route path="/empresas"      element={<ProtectedRoute allow={isPlatformAdmin}><Empresas /></ProtectedRoute>} />
           <Route path="/suscripciones" element={<ProtectedRoute allow={canAccessDashboard}><Suscripciones /></ProtectedRoute>} />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import estructura from './estructura.json'
 import styles from './template.module.css'
@@ -84,6 +84,15 @@ const buildMenuForUser = (user) => {
           }
         }
 
+        if (item.nombre === 'Ecommerce') {
+          return {
+            ...item,
+            items: (item.items || []).filter((sub) =>
+              ['/categorias', '/productos'].includes(sub.url),
+            ),
+          }
+        }
+
         if (item.nombre === 'Configuración') {
           return item
         }
@@ -98,7 +107,7 @@ const buildMenuForUser = (user) => {
 
 export default function Template({ children }) {
   const user = getStoredUser()
-  const menu = useMemo(() => buildMenuForUser(user), [user])
+  const menu = buildMenuForUser(user)
   const [sidebar, setSidebar] = useState('expanded')
   const [dark, setDark]       = useState(localStorage.getItem('dark_mode') === 'true')
   const [open, setOpen]       = useState(() =>
@@ -110,22 +119,18 @@ export default function Template({ children }) {
     }, {})
   )
   const loc = useLocation()
+  const effectiveOpen = menu.reduce((acc, item) => {
+    if (!item.grupal) {
+      return acc
+    }
+
+    const hasActiveChild = item.items?.some((sub) => sub.url === loc.pathname)
+    acc[item.nombre] = hasActiveChild ? true : (open[item.nombre] ?? true)
+    return acc
+  }, {})
 
   useEffect(() => { applySavedTheme() }, [])
   useEffect(() => { localStorage.setItem('dark_mode', dark) }, [dark])
-  useEffect(() => {
-    setOpen((prev) =>
-      menu.reduce((acc, item) => {
-        if (!item.grupal) {
-          return acc
-        }
-
-        const hasActiveChild = item.items?.some((sub) => sub.url === loc.pathname)
-        acc[item.nombre] = hasActiveChild ? true : (prev[item.nombre] ?? true)
-        return acc
-      }, {})
-    )
-  }, [loc.pathname, menu])
 
   const toggle = (name) => setOpen(p => ({ ...p, [name]: !p[name] }))
 
@@ -195,14 +200,14 @@ export default function Template({ children }) {
                           <ion-icon
                             name="chevron-down-outline"
                             class={styles.chevron}
-                            style={{ transform: open[item.nombre] ? 'rotate(180deg)' : 'none' }}
+                            style={{ transform: effectiveOpen[item.nombre] ? 'rotate(180deg)' : 'none' }}
                           />
                         </>
                       )}
                     </button>
 
                     {/* Sub-items */}
-                    {(open[item.nombre] || sidebar === 'collapsed') && item.items?.map(sub => (
+                    {(effectiveOpen[item.nombre] || sidebar === 'collapsed') && item.items?.map(sub => (
                       <Link
                         key={sub.url}
                         to={sub.url}

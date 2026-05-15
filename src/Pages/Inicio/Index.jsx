@@ -28,18 +28,15 @@ const getRemainingDays = (endDate) => {
 }
 
 export default function Inicio() {
-  const [user, setUser] = useState(null)
+  const user = authService.getUser()
   const [cards, setCards] = useState([])
   const [subtitle, setSubtitle] = useState('Cargando métricas...')
 
   useEffect(() => {
-    const currentUser = authService.getUser()
-    setUser(currentUser)
-
-    if (!currentUser) return
+    if (!user) return
 
     const loadMetrics = async () => {
-      if (isPlatformAdmin(currentUser)) {
+      if (isPlatformAdmin(user)) {
         const [companiesResp, subscriptionsResp, storesResp, warehousesResp] = await Promise.all([
           api.get('/tiendas/'),
           api.get('/suscripciones/'),
@@ -52,7 +49,7 @@ export default function Inicio() {
         const stores = Array.isArray(storesResp.data) ? storesResp.data : []
         const warehouses = Array.isArray(warehousesResp.data) ? warehousesResp.data : []
 
-        setSubtitle(`Bienvenido ${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim())
+        setSubtitle(`Bienvenido ${user.first_name || ''} ${user.last_name || ''}`.trim())
         setCards([
           { icon: 'business-outline', value: companies.length, label: 'Empresas registradas' },
           {
@@ -74,8 +71,8 @@ export default function Inicio() {
         return
       }
 
-      if (isStoreAdmin(currentUser)) {
-        const companyId = getCurrentCompanyId(currentUser)
+      if (isStoreAdmin(user)) {
+        const companyId = getCurrentCompanyId(user)
         const [companiesResp, subscriptionsResp, storesResp, warehousesResp, plansResp] = await Promise.all([
           api.get('/tiendas/'),
           api.get('/suscripciones/'),
@@ -128,7 +125,7 @@ export default function Inicio() {
       setSubtitle('No se pudieron cargar las métricas del dashboard.')
       setCards([])
     })
-  }, [])
+  }, [user])
 
   return (
     <Template>

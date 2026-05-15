@@ -22,6 +22,8 @@ const INITIAL_FORM = {
 export default function Almacenes() {
   const user = authService.getUser()
   const storeAdminView = isStoreAdmin(user)
+  const userId = user?.id ? String(user.id) : ''
+  const currentCompanyId = String(getCurrentCompanyId(user) || '')
 
   const [items, setItems] = useState([])
   const [companies, setCompanies] = useState([])
@@ -73,12 +75,21 @@ export default function Almacenes() {
   useEffect(() => {
     if (!storeAdminView || editId) return
 
-    setForm((prev) => ({
-      ...prev,
-      company: String(getCurrentCompanyId(user) || ''),
-      registered_by: String(user?.id || ''),
-    }))
-  }, [storeAdminView, user, editId])
+    setForm((prev) => {
+      const nextCompany = currentCompanyId
+      const nextRegisteredBy = userId
+
+      if (prev.company === nextCompany && prev.registered_by === nextRegisteredBy) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        company: nextCompany,
+        registered_by: nextRegisteredBy,
+      }
+    })
+  }, [storeAdminView, editId, currentCompanyId, userId])
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target
@@ -90,10 +101,10 @@ export default function Almacenes() {
   }
 
   const selectedStores = useMemo(() => {
-    const activeCompanyId = storeAdminView ? getCurrentCompanyId(user) : form.company
+    const activeCompanyId = storeAdminView ? currentCompanyId : form.company
     if (!activeCompanyId) return stores
     return stores.filter((store) => String(store.company) === String(activeCompanyId))
-  }, [stores, form.company, storeAdminView, user])
+  }, [stores, form.company, storeAdminView, currentCompanyId])
 
   const normalizeDecimal = (value) => {
     if (value === '' || value === null) return null
@@ -103,18 +114,18 @@ export default function Almacenes() {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    const currentCompanyId = storeAdminView ? getCurrentCompanyId(user) : form.company
+    const selectedCompanyId = storeAdminView ? currentCompanyId : form.company
 
-    if (!currentCompanyId || !form.store || !form.name.trim()) {
+    if (!selectedCompanyId || !form.store || !form.name.trim()) {
       showToast('Empresa, tienda y nombre del almacén son obligatorios.', 'error')
       return
     }
 
-    const activeCompany = companies.find((company) => String(company.id) === String(currentCompanyId))
+    const activeCompany = companies.find((company) => String(company.id) === String(selectedCompanyId))
     const activePlan = plans.find(
       (plan) => String(plan.id) === String(activeCompany?.current_subscription_plan || activeCompany?.plan_suscripcion_actual_id),
     )
-    const companyWarehouses = items.filter((item) => String(item.company) === String(currentCompanyId))
+    const companyWarehouses = items.filter((item) => String(item.company) === String(selectedCompanyId))
 
     if (!editId && storeAdminView && hasReachedLimit(companyWarehouses.length, activePlan?.warehouse_limit)) {
       showToast('Tu empresa ya alcanzó el límite de almacenes permitido por su plan actual.', 'error')
@@ -122,7 +133,7 @@ export default function Almacenes() {
     }
 
     const payload = {
-      company: Number(currentCompanyId),
+      company: Number(selectedCompanyId),
       store: Number(form.store),
       registered_by: storeAdminView ? (user?.id || null) : (form.registered_by ? Number(form.registered_by) : null),
       name: form.name.trim(),
@@ -163,9 +174,9 @@ export default function Almacenes() {
   const startEdit = (item) => {
     setEditId(item.id)
     setForm({
-      company: item.company ? String(item.company) : (storeAdminView ? String(getCurrentCompanyId(user) || '') : ''),
+      company: item.company ? String(item.company) : (storeAdminView ? currentCompanyId : ''),
       store: item.store ? String(item.store) : '',
-      registered_by: item.registered_by ? String(item.registered_by) : (storeAdminView ? String(user?.id || '') : ''),
+      registered_by: item.registered_by ? String(item.registered_by) : (storeAdminView ? userId : ''),
       name: item.name || '',
       address: item.address || '',
       reference: item.reference || '',
@@ -198,7 +209,7 @@ export default function Almacenes() {
     [users],
   )
 
-  const scopedCompanyId = storeAdminView ? getCurrentCompanyId(user) : ''
+  const scopedCompanyId = storeAdminView ? currentCompanyId : ''
   const activeCompany = companies.find((company) => String(company.id) === String(scopedCompanyId))
   const activePlan = plans.find(
     (plan) => String(plan.id) === String(activeCompany?.current_subscription_plan || activeCompany?.plan_suscripcion_actual_id),

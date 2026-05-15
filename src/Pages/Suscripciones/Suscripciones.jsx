@@ -3,7 +3,7 @@ import Template from '../../Componentes/Template/template'
 import Css from '../Configuracion/Configuracion.module.css'
 import { showToast } from '../../Componentes/Toast/ToastProvider'
 import api, { authService } from '../../services/api'
-import { getCurrentCompanyId, isPlatformAdmin, isStoreAdmin } from '../../utils/access'
+import { getCurrentCompanyId, isStoreAdmin } from '../../utils/access'
 
 const INITIAL_FORM = {
   name: '',
@@ -43,7 +43,6 @@ const buildCompanyPayload = (company, planId) => ({
 
 export default function Suscripciones() {
   const user = authService.getUser()
-  const isAdminView = isPlatformAdmin(user)
   const isStoreView = isStoreAdmin(user)
 
   const [items, setItems] = useState([])

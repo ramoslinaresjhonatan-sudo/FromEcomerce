@@ -1,6 +1,24 @@
 import axios from 'axios';
 
-const rawApiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+const getDefaultApiUrl = () => {
+  if (typeof window === 'undefined') {
+    return 'http://127.0.0.1:8000/api/v1';
+  }
+
+  const { protocol, hostname, origin } = window.location;
+  const isLocalhost =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '0.0.0.0';
+
+  if (isLocalhost) {
+    return `${protocol}//127.0.0.1:8000/api/v1`;
+  }
+
+  return `${origin}/api/v1`;
+};
+
+const rawApiUrl = import.meta.env.VITE_API_URL || getDefaultApiUrl();
 
 const normalizeApiUrl = (url) => {
   const trimmedUrl = url.replace(/\/+$/, '');

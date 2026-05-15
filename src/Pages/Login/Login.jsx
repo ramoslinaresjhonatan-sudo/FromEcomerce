@@ -26,11 +26,17 @@ export default function Login() {
       }
       navigate('/inicio')
     } catch (err) {
-      const msg =
-        err.message ||
-        err.response?.data?.detail ||
-        err.response?.data?.message ||
-        'Error al iniciar sesión. Verifica tus credenciales.'
+      const backendDetail = err.response?.data?.detail || err.response?.data?.message
+      const isInvalidCredentials =
+        err.response?.status === 401 ||
+        String(backendDetail || '').toLowerCase().includes('credenciales invalidas') ||
+        String(backendDetail || '').toLowerCase().includes('credenciales inválidas')
+
+      const msg = isInvalidCredentials
+        ? 'Correo o contraseña incorrectos. Verifica ambos datos e inténtalo nuevamente.'
+        : err.message ||
+          backendDetail ||
+          'No se pudo iniciar sesión en este momento. Inténtalo nuevamente.'
       setError(msg)
     } finally {
       setLoading(false)
