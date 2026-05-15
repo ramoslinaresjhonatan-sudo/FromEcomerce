@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import estructura from './estructura.json'
 import styles from './template.module.css'
 import ToastProvider from '../Toast/ToastProvider'
+import { authService } from '../../services/api'
+import { getStoredUser, isPlatformAdmin, isStoreAdmin } from '../../utils/access'
 
 const hexToRgb = (hex) => {
   const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -61,14 +63,69 @@ function Icon({ name }) {
   return <ion-icon name={icons[name] || 'ellipse-outline'} />
 }
 
+const buildMenuForUser = (user) => {
+  if (isPlatformAdmin(user)) {
+    return estructura
+  }
+
+  if (isStoreAdmin(user)) {
+    return estructura
+      .map((item) => {
+        if (item.nombre === 'Inicio') {
+          return item
+        }
+
+        if (item.nombre === 'Administración') {
+          return {
+            ...item,
+            items: (item.items || []).filter((sub) =>
+              ['/suscripciones', '/stores', '/almacenes'].includes(sub.url),
+            ),
+          }
+        }
+
+        if (item.nombre === 'Configuración') {
+          return item
+        }
+
+        return null
+      })
+      .filter(Boolean)
+  }
+
+  return estructura.filter((item) => item.nombre === 'Configuración')
+}
+
 export default function Template({ children }) {
+  const user = getStoredUser()
+  const menu = useMemo(() => buildMenuForUser(user), [user])
   const [sidebar, setSidebar] = useState('expanded')
   const [dark, setDark]       = useState(localStorage.getItem('dark_mode') === 'true')
-  const [open, setOpen]       = useState({})
+  const [open, setOpen]       = useState(() =>
+    menu.reduce((acc, item) => {
+      if (item.grupal) {
+        acc[item.nombre] = true
+      }
+      return acc
+    }, {})
+  )
   const loc = useLocation()
 
   useEffect(() => { applySavedTheme() }, [])
   useEffect(() => { localStorage.setItem('dark_mode', dark) }, [dark])
+  useEffect(() => {
+    setOpen((prev) =>
+      menu.reduce((acc, item) => {
+        if (!item.grupal) {
+          return acc
+        }
+
+        const hasActiveChild = item.items?.some((sub) => sub.url === loc.pathname)
+        acc[item.nombre] = hasActiveChild ? true : (prev[item.nombre] ?? true)
+        return acc
+      }, {})
+    )
+  }, [loc.pathname, menu])
 
   const toggle = (name) => setOpen(p => ({ ...p, [name]: !p[name] }))
 
@@ -77,11 +134,18 @@ export default function Template({ children }) {
 
   const isExpanded = sidebar === 'expanded'
 
-  const userStr = localStorage.getItem('user')
-  const user = userStr ? JSON.parse(userStr) : null
   const fullName = user ? `${user.first_name} ${user.last_name}`.trim() || user.email : 'Invitado'
-  const role = user ? user.tipo_usuario : 'Sin rol'
+  const role = user ? (user.user_type || user.tipo_usuario || user.role_scope || 'Sin rol') : 'Sin rol'
   const initial = fullName.charAt(0).toUpperCase()
+  const activeSection = menu.find((item) => {
+    if (item.grupal) {
+      return item.items?.some((sub) => sub.url === loc.pathname)
+    }
+    return item['ruta-No-Grupal'] === loc.pathname
+  })
+  const activeTitle = activeSection?.grupal
+    ? activeSection.items?.find((sub) => sub.url === loc.pathname)?.nombre || activeSection.nombre
+    : activeSection?.nombre || 'Dashboard'
 
   return (
     <div className={`${styles.layout} ${dark ? styles.dark : styles.light}`}>
@@ -100,14 +164,10 @@ export default function Template({ children }) {
         {/* Navigation */}
         <nav className={styles.nav}>
 
-          {estructura.map((item, idx) => {
+          {menu.map((item, idx) => {
             // Section labels
             const isFirst = idx === 0
-            const prevWasGroupal = idx > 0 && estructura[idx - 1].grupal
-            const showLabel = isExpanded && (
-              (isFirst && item.grupal)  ||
-              (!item.grupal && prevWasGroupal)
-            )
+            const prevWasGroupal = idx > 0 && menu[idx - 1].grupal
 
             return (
               <div key={item.nombre}>
@@ -203,7 +263,44 @@ export default function Template({ children }) {
 
       {/* ─── MAIN ─── */}
       <main className={`${styles.main} ${styles[`main_${sidebar}`]}`}>
-        {children}
+        <header className={styles.topbar}>
+          <div className={styles.topbarIntro}>
+            <span className={styles.topbarEyebrow}>Panel principal</span>
+            <h1 className={styles.topbarTitle}>{activeTitle}</h1>
+          </div>
+
+          <div className={styles.topbarActions}>
+            <button
+              type="button"
+              className={styles.iconAction}
+              title="Notificaciones"
+              aria-label="Notificaciones"
+            >
+              <ion-icon name="notifications-outline" />
+            </button>
+
+            <Link to="/configuracion" className={styles.profileAction} title="Mi perfil">
+              <span className={styles.profileActionIcon}>
+                <ion-icon name="person-circle-outline" />
+              </span>
+              <span>Mi perfil</span>
+            </Link>
+
+            <button
+              type="button"
+              className={styles.iconAction}
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+              onClick={() => authService.logout()}
+            >
+              <ion-icon name="log-out-outline" />
+            </button>
+          </div>
+        </header>
+
+        <div className={styles.content}>
+          {children}
+        </div>
       </main>
 
       {/* Notificaciones Globales */}

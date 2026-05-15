@@ -1,6 +1,22 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+
+const normalizeApiUrl = (url) => {
+  const trimmedUrl = url.replace(/\/+$/, '');
+
+  if (trimmedUrl.endsWith('/api/v1')) {
+    return trimmedUrl;
+  }
+
+  if (trimmedUrl.endsWith('/api')) {
+    return `${trimmedUrl}/v1`;
+  }
+
+  return `${trimmedUrl}/api/v1`;
+};
+
+const API_URL = normalizeApiUrl(rawApiUrl);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -28,7 +44,7 @@ api.interceptors.response.use(
 
       if (refresh) {
         try {
-          const { data } = await axios.post(`${API_URL}/auth/refresh/`, {
+          const { data } = await axios.post(`${API_URL}/auth/token/refresh/`, {
             refresh,
           });
           localStorage.setItem('access_token', data.access);
@@ -54,15 +70,16 @@ api.interceptors.response.use(
 // ─── Auth helpers ──────────────────────────────────────
 export const authService = {
   async login(email, password) {
-    const { data } = await api.post('/auth/login/', { email, password });
+    const { data } = await api.post('/auth/', { email, password });
     localStorage.setItem('access_token', data.access);
     localStorage.setItem('refresh_token', data.refresh);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    return data;
+    const user = data.user ?? (await api.get('/usuarios/me/')).data;
+    localStorage.setItem('user', JSON.stringify(user));
+    return { ...data, user };
   },
 
   async register(userData) {
-    const { data } = await api.post('/auth/register/', userData);
+    const { data } = await api.post('/usuarios/register/', userData);
     localStorage.setItem('access_token', data.access);
     localStorage.setItem('refresh_token', data.refresh);
     localStorage.setItem('user', JSON.stringify(data.user));
@@ -86,7 +103,7 @@ export const authService = {
   },
 
   async fetchMe() {
-    const { data } = await api.get('/auth/me/');
+    const { data } = await api.get('/usuarios/me/');
     localStorage.setItem('user', JSON.stringify(data));
     return data;
   },

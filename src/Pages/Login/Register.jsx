@@ -1,5 +1,5 @@
 import styles from '../Login/Login.module.css'
-import { ShoppingBag, Mail, Lock, User, Loader2, UserPlus } from 'lucide-react'
+import { Mail, Lock, User, Loader2, Phone } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authService } from '../../services/api'
@@ -8,13 +8,9 @@ export default function Register() {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
-    apellido_m: '',
     email: '',
+    phone: '',
     password: '',
-    tienda_nombre: '',
-    tienda_nit: '',
-    tienda_nro_corporativo: '',
-    tienda_direccion: '',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -30,7 +26,13 @@ export default function Register() {
     setLoading(true)
 
     try {
-      await authService.register(formData)
+      await authService.register({
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim() || null,
+        password: formData.password,
+      })
       navigate('/inicio')
     } catch (err) {
       const msg = err.response?.data
@@ -47,28 +49,28 @@ export default function Register() {
       <div className={styles.panel}>
         <div className={styles.panelContent}>
           <div className={styles.logo}>
-            <ShoppingBag size={28} />
+            <User size={28} />
             <span>EcomSaaS</span>
           </div>
-          <h2>Únete a la red de empleados más grande</h2>
-          <p>Gestiona tu trabajo de forma eficiente y profesional.</p>
+          <h2>Crea tu acceso al sistema</h2>
+          <p>Registra un usuario con el modelo actual del backend y empieza a trabajar de inmediato.</p>
           <div className={styles.stats}>
-            <div><strong>Gratis</strong><span>Registro de empleado</span></div>
-            <div><strong>24/7</strong><span>Soporte</span></div>
+            <div><strong>Rápido</strong><span>Alta de usuario</span></div>
+            <div><strong>Seguro</strong><span>Autenticación JWT</span></div>
           </div>
         </div>
       </div>
 
       <div className={styles.formSide}>
         <div className={styles.formBox}>
-          <h1>Crea tu cuenta gratis</h1>
-          <p className={styles.subtitle}>Regístrate como administrador para comenzar</p>
+          <h1>Crear cuenta</h1>
+          <p className={styles.subtitle}>Registra tus datos básicos para ingresar al dashboard</p>
 
           {error && <div className={styles.errorMsg}>{error}</div>}
 
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.field}>
-              <label>Nombre</label>
+              <label>Nombres</label>
               <div className={styles.inputWrapper}>
                 <User size={16} className={styles.icon} />
                 <input
@@ -82,87 +84,18 @@ export default function Register() {
               </div>
             </div>
 
-            <div className={styles.row}>
-              <div className={styles.field} style={{flex: 1}}>
-                <label>Apellido P.</label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    name="last_name"
-                    type="text"
-                    placeholder="Pérez"
-                    value={formData.last_name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-              <div className={styles.field} style={{flex: 1}}>
-                <label>Apellido M.</label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    name="apellido_m"
-                    type="text"
-                    placeholder="García"
-                    value={formData.apellido_m}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.field} style={{flex: 1}}>
-                <label>Nombre de la Tienda</label>
-                <div className={styles.inputWrapper}>
-                  <ShoppingBag size={16} className={styles.icon} />
-                  <input
-                    name="tienda_nombre"
-                    type="text"
-                    placeholder="Mi Tienda SA"
-                    value={formData.tienda_nombre}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-              <div className={styles.field} style={{flex: 1}}>
-                <label>NIT Tienda</label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    name="tienda_nit"
-                    type="text"
-                    placeholder="123456789"
-                    value={formData.tienda_nit}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.field} style={{flex: 1}}>
-                <label>Nro. Corporativo</label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    name="tienda_nro_corporativo"
-                    type="text"
-                    placeholder="+1 234 567 890"
-                    value={formData.tienda_nro_corporativo}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-              <div className={styles.field} style={{flex: 1}}>
-                <label>Dirección Tienda</label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    name="tienda_direccion"
-                    type="text"
-                    placeholder="Av. Principal #123"
-                    value={formData.tienda_direccion}
-                    onChange={handleChange}
-                  />
-                </div>
+            <div className={styles.field}>
+              <label>Apellidos</label>
+              <div className={styles.inputWrapper}>
+                <User size={16} className={styles.icon} />
+                <input
+                  name="last_name"
+                  type="text"
+                  placeholder="Pérez López"
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  required
+                />
               </div>
             </div>
 
@@ -177,6 +110,20 @@ export default function Register() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                />
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label>Teléfono</label>
+              <div className={styles.inputWrapper}>
+                <Phone size={16} className={styles.icon} />
+                <input
+                  name="phone"
+                  type="text"
+                  placeholder="+591 70000000"
+                  value={formData.phone}
+                  onChange={handleChange}
                 />
               </div>
             </div>

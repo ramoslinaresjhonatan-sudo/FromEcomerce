@@ -30,8 +30,8 @@
             },
             {
                 "ion-icon": "storefront-outline",
-                "nombre": "Sucursales",
-                "url": "/sucursales"
+                "nombre": "Tiendas",
+                "url": "/stores"
             },
             {
                 "ion-icon": "archive-outline",

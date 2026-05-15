@@ -3,6 +3,7 @@ import { ShoppingBag, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authService } from '../../services/api'
+import { canAccessDashboard } from '../../utils/access'
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
@@ -18,10 +19,15 @@ export default function Login() {
     setLoading(true)
 
     try {
-      await authService.login(email, password)
+      const result = await authService.login(email, password)
+      if (!canAccessDashboard(result.user)) {
+        authService.logout()
+        throw new Error('Tu usuario no tiene acceso a este dashboard.')
+      }
       navigate('/inicio')
     } catch (err) {
       const msg =
+        err.message ||
         err.response?.data?.detail ||
         err.response?.data?.message ||
         'Error al iniciar sesión. Verifica tus credenciales.'

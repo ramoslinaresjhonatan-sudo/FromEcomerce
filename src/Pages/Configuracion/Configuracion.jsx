@@ -3,30 +3,28 @@ import Template from '../../Componentes/Template/template'
 import Css from './Configuracion.module.css'
 import api from '../../services/api'
 
-/* ── Google Fonts disponibles ── */
 const FONTS = [
   { label: 'Outfit (Predeterminado)', value: 'Outfit' },
-  { label: 'Inter',                   value: 'Inter' },
-  { label: 'Poppins',                 value: 'Poppins' },
-  { label: 'Roboto',                  value: 'Roboto' },
-  { label: 'Lato',                    value: 'Lato' },
-  { label: 'Montserrat',              value: 'Montserrat' },
+  { label: 'Inter', value: 'Inter' },
+  { label: 'Poppins', value: 'Poppins' },
+  { label: 'Roboto', value: 'Roboto' },
+  { label: 'Lato', value: 'Lato' },
+  { label: 'Montserrat', value: 'Montserrat' },
 ]
 
 const FONT_SIZES = [
   { label: 'Pequeño', value: '13px' },
   { label: 'Mediano', value: '15px' },
-  { label: 'Grande',  value: '17px' },
+  { label: 'Grande', value: '17px' },
 ]
 
-/* ── Colores presets ── */
 const PRESETS = [
-  { label: 'Naranja',  value: '#F97316' },
-  { label: 'Índigo',   value: '#6366F1' },
+  { label: 'Naranja', value: '#F97316' },
+  { label: 'Índigo', value: '#6366F1' },
   { label: 'Esmeralda', value: '#10B981' },
-  { label: 'Azul',     value: '#3B82F6' },
-  { label: 'Rosa',     value: '#EC4899' },
-  { label: 'Rojo',     value: '#EF4444' },
+  { label: 'Azul', value: '#3B82F6' },
+  { label: 'Rosa', value: '#EC4899' },
+  { label: 'Rojo', value: '#EF4444' },
 ]
 
 const PREDEFINED_BGS = [
@@ -34,38 +32,38 @@ const PREDEFINED_BGS = [
   '/fondos/bloom_purple_1776918904122.png',
   '/fondos/bloom_orange_1776918919955.png',
   '/fondos/bloom_dark_1776919136021.png',
-  '/fondos/bloom_silver_1776919153876.png'
+  '/fondos/bloom_silver_1776919153876.png',
 ]
 
 const BG_COLORS = [
   '#0c0a09',
   '#f4f2ee',
-  '#1e1b4b', // deep indigo
-  '#064e3b', // deep green
-  '#7f1d1d'  // deep red
+  '#1e1b4b',
+  '#064e3b',
+  '#7f1d1d',
 ]
 
 function loadTheme() {
   return {
-    primaryColor: localStorage.getItem('theme_color')    || '#F97316',
-    fontFamily:   localStorage.getItem('theme_font')     || 'Outfit',
-    fontSize:     localStorage.getItem('theme_size')     || '15px',
+    primaryColor: localStorage.getItem('theme_color') || '#F97316',
+    fontFamily: localStorage.getItem('theme_font') || 'Outfit',
+    fontSize: localStorage.getItem('theme_size') || '15px',
     backgroundImage: localStorage.getItem('theme_bg_image') || '',
     backgroundColor: localStorage.getItem('theme_bg_color') || '',
-    bgOverlay:    localStorage.getItem('theme_bg_overlay') || '0',
-    textOpacity:  localStorage.getItem('theme_text_opacity') || '1',
+    bgOverlay: localStorage.getItem('theme_bg_overlay') || '0',
+    textOpacity: localStorage.getItem('theme_text_opacity') || '1',
   }
 }
 
 function applyTheme({ primaryColor, fontFamily, fontSize, backgroundImage, backgroundColor, bgOverlay, textOpacity }) {
   const root = document.documentElement
   root.style.setProperty('--app-primary', primaryColor)
-  root.style.setProperty('--app-font',    fontFamily)
-  root.style.setProperty('--app-size',    fontSize)
+  root.style.setProperty('--app-font', fontFamily)
+  root.style.setProperty('--app-size', fontSize)
   root.style.fontSize = fontSize
-  root.style.setProperty('--bg-overlay',  bgOverlay)
+  root.style.setProperty('--bg-overlay', bgOverlay)
   root.style.setProperty('--text-opacity', textOpacity)
-  
+
   if (backgroundImage) {
     root.style.setProperty('--app-bg-image', `url(${backgroundImage})`)
   } else {
@@ -77,8 +75,7 @@ function applyTheme({ primaryColor, fontFamily, fontSize, backgroundImage, backg
   } else {
     root.style.removeProperty('--app-bg-color')
   }
-  
-  // Generar variantes para hover/active (transparencias)
+
   const rgb = hexToRgb(primaryColor)
   if (rgb) {
     root.style.setProperty('--app-primary-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`)
@@ -88,101 +85,142 @@ function applyTheme({ primaryColor, fontFamily, fontSize, backgroundImage, backg
   }
 
   document.body.style.fontFamily = `'${fontFamily}', sans-serif`
-  document.body.style.fontSize   = fontSize
-  
+  document.body.style.fontSize = fontSize
+
   const id = `gfont-${fontFamily}`
   if (!document.getElementById(id)) {
     const link = document.createElement('link')
-    link.id   = id
-    link.rel  = 'stylesheet'
-    link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g,'+')}:wght@400;600;700;800&display=swap`
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, '+')}:wght@400;600;700;800&display=swap`
     document.head.appendChild(link)
   }
 }
 
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null
+}
+
+const emptyCompany = {
+  id: '',
+  name: '',
+  tax_id: '',
+  email: '',
+  phone: '',
+  address: '',
+  legal_name: '',
+  primary_currency: 'BOB',
+  timezone: 'America/La_Paz',
 }
 
 export default function Configuracion() {
-  /* ── Profile state ── */
   const [profile, setProfile] = useState({
-    nombre:    '',
-    apellido:  '',
-    correo:    '',
-    cargo:     '',
-    password:  '',
-    confirm:   '',
+    nombre: '',
+    apellido: '',
+    correo: '',
+    telefono: '',
+    cargo: '',
+    password: '',
+    confirm: '',
   })
   const [profileSaved, setProfileSaved] = useState(false)
 
-  /* ── Tienda state ── */
-  const [tienda, setTienda] = useState({
-    id: '',
-    nombre: '',
-    correo: '',
-    direccion: '',
-    nit: '',
-    nro_corporativo: ''
-  })
-  const [tiendaSaved, setTiendaSaved] = useState(false)
-  
+  const [company, setCompany] = useState(emptyCompany)
+  const [companySaved, setCompanySaved] = useState(false)
+
   const [theme, setTheme] = useState(loadTheme)
   const [themeSaved, setThemeSaved] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
   const [isAdmin, setIsAdmin] = useState(false)
 
-  /* Load profile and tienda on mount */
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'))
-    if (user) {
+    const bootstrap = async () => {
+      const user = JSON.parse(localStorage.getItem('user'))
+      if (!user) return
+
+      const roleValue = user.user_type || user.role_scope || ''
+      const adminLike = ['SUPERUSER', 'MODERATOR', 'STORE_ADMIN', 'SYSTEM', 'COMPANY', 'STORE'].includes(roleValue)
+
       setProfile({
-        nombre: user.first_name || '',
-        apellido: user.last_name || '',
+        nombre: user.first_name || user.nombres || '',
+        apellido: user.last_name || user.apellidos || '',
         correo: user.email || '',
-        cargo: user.tipo_usuario === 'admin' ? 'Administrador' : 'Empleado',
+        telefono: user.phone || user.telefono || '',
+        cargo: roleValue || 'Usuario',
         password: '',
         confirm: '',
       })
-      setIsAdmin(user.tipo_usuario === 'admin')
-      
-      // Fetch tienda data
-      if (user.tienda_data) {
-        setTienda(user.tienda_data)
+      setIsAdmin(adminLike)
+
+      const companyId = user.current_company || user.company || user.active_company_id
+      if (companyId) {
+        try {
+          const { data } = await api.get(`/tiendas/${companyId}/`)
+          setCompany({
+            id: data.id || '',
+            name: data.name || '',
+            tax_id: data.tax_id || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            address: data.address || '',
+            legal_name: data.legal_name || '',
+            primary_currency: data.primary_currency || 'BOB',
+            timezone: data.timezone || 'America/La_Paz',
+          })
+        } catch (err) {
+          console.error(err)
+        }
       }
     }
+
+    bootstrap()
+  }, [])
+
+  useEffect(() => {
     applyTheme(theme)
   }, [theme])
 
-  const handleProfile = e => {
-    setProfile(p => ({ ...p, [e.target.name]: e.target.value }))
+  const handleProfile = (e) => {
+    setProfile((prev) => ({ ...prev, [e.target.name]: e.target.value }))
     setProfileSaved(false)
   }
 
-  const handleTienda = e => {
-    setTienda(t => ({ ...t, [e.target.name]: e.target.value }))
-    setTiendaSaved(false)
+  const handleCompany = (e) => {
+    setCompany((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+    setCompanySaved(false)
   }
 
-  const saveProfile = async e => {
+  const saveProfile = async (e) => {
     e.preventDefault()
+    if (profile.password && profile.password !== profile.confirm) {
+      alert('Las contraseñas no coinciden')
+      return
+    }
+
     try {
       const user = JSON.parse(localStorage.getItem('user'))
-      const { data } = await api.put(`/usuarios/${user.id}/`, {
+      const payload = {
         first_name: profile.nombre,
         last_name: profile.apellido,
         email: profile.correo,
-        apellido_m: user.apellido_m, // Mantener
-        tipo_usuario: user.tipo_usuario,
-        password: profile.password || undefined
-      })
+        phone: profile.telefono || null,
+      }
+
+      if (profile.password) {
+        payload.password = profile.password
+      }
+
+      const { data } = await api.patch(`/usuarios/${user.id}/`, payload)
       localStorage.setItem('user', JSON.stringify(data))
       setProfileSaved(true)
+      setProfile((prev) => ({ ...prev, password: '', confirm: '' }))
       setTimeout(() => setProfileSaved(false), 3000)
     } catch (err) {
       console.error(err)
@@ -190,36 +228,51 @@ export default function Configuracion() {
     }
   }
 
-  const saveTienda = async e => {
+  const saveCompany = async (e) => {
     e.preventDefault()
     try {
-      const { data } = await api.put(`/tiendas/${tienda.id}/`, tienda)
-      setTienda(data)
-      // Update local user data too
-      const user = JSON.parse(localStorage.getItem('user'))
-      user.tienda_data = data
-      localStorage.setItem('user', JSON.stringify(user))
-      
-      setTiendaSaved(true)
-      setTimeout(() => setTiendaSaved(false), 3000)
+      const payload = {
+        name: company.name,
+        tax_id: company.tax_id || null,
+        email: company.email || null,
+        phone: company.phone || null,
+        address: company.address || null,
+        legal_name: company.legal_name || null,
+        primary_currency: company.primary_currency || 'BOB',
+        timezone: company.timezone || 'America/La_Paz',
+      }
+      const { data } = await api.put(`/tiendas/${company.id}/`, payload)
+      setCompany({
+        id: data.id || '',
+        name: data.name || '',
+        tax_id: data.tax_id || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        legal_name: data.legal_name || '',
+        primary_currency: data.primary_currency || 'BOB',
+        timezone: data.timezone || 'America/La_Paz',
+      })
+      setCompanySaved(true)
+      setTimeout(() => setCompanySaved(false), 3000)
     } catch (err) {
       console.error(err)
-      alert('Error al guardar datos de la tienda')
+      alert('Error al guardar datos de la empresa')
     }
   }
 
   const updateTheme = (key, value) => {
-    setTheme(prev => ({ ...prev, [key]: value }))
+    setTheme((prev) => ({ ...prev, [key]: value }))
     setThemeSaved(false)
   }
 
   const saveTheme = () => {
     localStorage.setItem('theme_color', theme.primaryColor)
-    localStorage.setItem('theme_font',  theme.fontFamily)
-    localStorage.setItem('theme_size',  theme.fontSize)
+    localStorage.setItem('theme_font', theme.fontFamily)
+    localStorage.setItem('theme_size', theme.fontSize)
     localStorage.setItem('theme_bg_overlay', theme.bgOverlay)
     localStorage.setItem('theme_text_opacity', theme.textOpacity)
-    
+
     if (theme.backgroundImage) {
       localStorage.setItem('theme_bg_image', theme.backgroundImage)
     } else {
@@ -269,36 +322,25 @@ export default function Configuracion() {
       <div className={Css.page}>
         <div className={Css.header}>
           <h1>Configuración</h1>
-          <p>Personaliza tu perfil, la apariencia y los datos de tu empresa.</p>
+          <p>Personaliza tu perfil, la apariencia y los datos principales de tu empresa.</p>
         </div>
 
-        {/* ── Tabs ── */}
         <div className={Css.tabs}>
-          <button
-            className={`${Css.tab} ${activeTab === 'profile' ? Css.tabActive : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
+          <button className={`${Css.tab} ${activeTab === 'profile' ? Css.tabActive : ''}`} onClick={() => setActiveTab('profile')}>
             <ion-icon name="person-circle-outline" /> Perfil
           </button>
-          
-          {isAdmin && (
-            <button
-              className={`${Css.tab} ${activeTab === 'tienda' ? Css.tabActive : ''}`}
-              onClick={() => setActiveTab('tienda')}
-            >
+
+          {isAdmin && company.id && (
+            <button className={`${Css.tab} ${activeTab === 'company' ? Css.tabActive : ''}`} onClick={() => setActiveTab('company')}>
               <ion-icon name="business-outline" /> Empresa
             </button>
           )}
 
-          <button
-            className={`${Css.tab} ${activeTab === 'theme' ? Css.tabActive : ''}`}
-            onClick={() => setActiveTab('theme')}
-          >
+          <button className={`${Css.tab} ${activeTab === 'theme' ? Css.tabActive : ''}`} onClick={() => setActiveTab('theme')}>
             <ion-icon name="color-palette-outline" /> Apariencia
           </button>
         </div>
 
-        {/* ── PROFILE TAB ── */}
         {activeTab === 'profile' && (
           <form className={Css.card} onSubmit={saveProfile}>
             <div className={Css.avatarSection}>
@@ -336,13 +378,17 @@ export default function Configuracion() {
                 </div>
               </div>
               <div className={Css.field}>
+                <label>Teléfono</label>
+                <div className={Css.inputWrap}>
+                  <ion-icon name="call-outline" />
+                  <input name="telefono" value={profile.telefono} onChange={handleProfile} placeholder="+591 70000000" />
+                </div>
+              </div>
+              <div className={Css.field}>
                 <label>Cargo / Rol</label>
                 <div className={Css.inputWrap}>
                   <ion-icon name="briefcase-outline" />
-                  <select name="cargo" value={profile.cargo} disabled>
-                    <option>Administrador</option>
-                    <option>Empleado</option>
-                  </select>
+                  <input name="cargo" value={profile.cargo} disabled />
                 </div>
               </div>
               <div className={Css.field}>
@@ -370,47 +416,74 @@ export default function Configuracion() {
           </form>
         )}
 
-        {/* ── TIENDA TAB ── */}
-        {activeTab === 'tienda' && isAdmin && (
-          <form className={Css.card} onSubmit={saveTienda}>
+        {activeTab === 'company' && isAdmin && company.id && (
+          <form className={Css.card} onSubmit={saveCompany}>
             <div className={Css.section}>
               <h2><ion-icon name="business-outline" /> Datos de la Empresa</h2>
-              <p style={{marginBottom: '20px', opacity: 0.7}}>Estos datos se mostrarán en tus facturas y reportes.</p>
-              
+              <p style={{ marginBottom: '20px', opacity: 0.7 }}>Estos datos se sincronizan con el modelo actual de empresas del backend.</p>
+
               <div className={Css.formGrid}>
                 <div className={Css.field}>
-                  <label>Nombre de la Tienda / Empresa</label>
+                  <label>Nombre Comercial</label>
                   <div className={Css.inputWrap}>
                     <ion-icon name="storefront-outline" />
-                    <input name="nombre" value={tienda.nombre} onChange={handleTienda} placeholder="Nombre Comercial" required />
+                    <input name="name" value={company.name} onChange={handleCompany} placeholder="Nombre Comercial" required />
                   </div>
                 </div>
                 <div className={Css.field}>
-                  <label>NIT / Identificación Tributaria</label>
+                  <label>Razón Social</label>
+                  <div className={Css.inputWrap}>
+                    <ion-icon name="document-text-outline" />
+                    <input name="legal_name" value={company.legal_name} onChange={handleCompany} placeholder="Razón social" />
+                  </div>
+                </div>
+                <div className={Css.field}>
+                  <label>NIT</label>
                   <div className={Css.inputWrap}>
                     <ion-icon name="card-outline" />
-                    <input name="nit" value={tienda.nit} onChange={handleTienda} placeholder="Ej: 12345678-9" />
+                    <input name="tax_id" value={company.tax_id} onChange={handleCompany} placeholder="12345678-9" />
                   </div>
                 </div>
                 <div className={Css.field}>
                   <label>Correo Corporativo</label>
                   <div className={Css.inputWrap}>
                     <ion-icon name="mail-outline" />
-                    <input name="correo" type="email" value={tienda.correo} onChange={handleTienda} placeholder="empresa@ejemplo.com" />
+                    <input name="email" type="email" value={company.email} onChange={handleCompany} placeholder="empresa@ejemplo.com" />
                   </div>
                 </div>
                 <div className={Css.field}>
-                  <label>Número Corporativo (WhatsApp/Tel)</label>
+                  <label>Teléfono Corporativo</label>
                   <div className={Css.inputWrap}>
                     <ion-icon name="call-outline" />
-                    <input name="nro_corporativo" value={tienda.nro_corporativo} onChange={handleTienda} placeholder="+1 234 567 890" />
+                    <input name="phone" value={company.phone} onChange={handleCompany} placeholder="+591 70000000" />
                   </div>
                 </div>
-                <div className={Css.field} style={{gridColumn: '1 / -1'}}>
+                <div className={Css.field}>
+                  <label>Moneda Principal</label>
+                  <div className={Css.inputWrap}>
+                    <select name="primary_currency" value={company.primary_currency} onChange={handleCompany}>
+                      <option value="BOB">BOB</option>
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                  </div>
+                </div>
+                <div className={Css.field}>
+                  <label>Zona Horaria</label>
+                  <div className={Css.inputWrap}>
+                    <select name="timezone" value={company.timezone} onChange={handleCompany}>
+                      <option value="America/La_Paz">America/La_Paz</option>
+                      <option value="America/Lima">America/Lima</option>
+                      <option value="America/Bogota">America/Bogota</option>
+                      <option value="America/Santiago">America/Santiago</option>
+                    </select>
+                  </div>
+                </div>
+                <div className={Css.field} style={{ gridColumn: '1 / -1' }}>
                   <label>Dirección Física</label>
                   <div className={Css.inputWrap}>
                     <ion-icon name="location-outline" />
-                    <input name="direccion" value={tienda.direccion} onChange={handleTienda} placeholder="Av. Principal #123, Ciudad" />
+                    <input name="address" value={company.address} onChange={handleCompany} placeholder="Av. Principal #123, Ciudad" />
                   </div>
                 </div>
               </div>
@@ -419,27 +492,24 @@ export default function Configuracion() {
             <div className={Css.actions}>
               <button type="submit" className={Css.btnSave}>
                 <ion-icon name="save-outline" />
-                {tiendaSaved ? '¡Guardado!' : 'Guardar Datos de Empresa'}
+                {companySaved ? '¡Guardado!' : 'Guardar Datos de Empresa'}
               </button>
             </div>
           </form>
         )}
 
-        {/* ── THEME TAB ── */}
         {activeTab === 'theme' && (
           <div className={Css.card}>
-
-            {/* Color primary */}
             <div className={Css.section}>
               <h2><ion-icon name="color-fill-outline" /> Color principal</h2>
               <div className={Css.presets}>
-                {PRESETS.map(p => (
+                {PRESETS.map((preset) => (
                   <button
-                    key={p.value}
-                    className={`${Css.presetBtn} ${theme.primaryColor === p.value ? Css.presetActive : ''}`}
-                    style={{ background: p.value }}
-                    title={p.label}
-                    onClick={() => updateTheme('primaryColor', p.value)}
+                    key={preset.value}
+                    className={`${Css.presetBtn} ${theme.primaryColor === preset.value ? Css.presetActive : ''}`}
+                    style={{ background: preset.value }}
+                    title={preset.label}
+                    onClick={() => updateTheme('primaryColor', preset.value)}
                   />
                 ))}
                 <label className={Css.colorPickerWrap} title="Color personalizado">
@@ -448,7 +518,7 @@ export default function Configuracion() {
                     type="color"
                     value={theme.primaryColor}
                     className={Css.colorPicker}
-                    onChange={e => updateTheme('primaryColor', e.target.value)}
+                    onChange={(e) => updateTheme('primaryColor', e.target.value)}
                   />
                 </label>
               </div>
@@ -457,41 +527,38 @@ export default function Configuracion() {
               </div>
             </div>
 
-            {/* Font family */}
             <div className={Css.section}>
               <h2><ion-icon name="text-outline" /> Estilo de letra</h2>
               <div className={Css.fontGrid}>
-                {FONTS.map(f => (
+                {FONTS.map((font) => (
                   <button
-                    key={f.value}
-                    className={`${Css.fontBtn} ${theme.fontFamily === f.value ? Css.fontBtnActive : ''}`}
-                    style={{ fontFamily: f.value }}
-                    onClick={() => updateTheme('fontFamily', f.value)}
+                    key={font.value}
+                    className={`${Css.fontBtn} ${theme.fontFamily === font.value ? Css.fontBtnActive : ''}`}
+                    style={{ fontFamily: font.value }}
+                    onClick={() => updateTheme('fontFamily', font.value)}
                   >
-                    Aa — {f.label}
+                    Aa — {font.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Font size */}
             <div className={Css.section}>
               <h2><ion-icon name="expand-outline" /> Tamaño de letra</h2>
               <div className={Css.sizeButtons}>
-                {FONT_SIZES.map(s => (
+                {FONT_SIZES.map((size) => (
                   <button
-                    key={s.value}
-                    className={`${Css.sizeBtn} ${theme.fontSize === s.value ? Css.sizeBtnActive : ''}`}
-                    style={{ fontSize: s.value }}
-                    onClick={() => updateTheme('fontSize', s.value)}
+                    key={size.value}
+                    className={`${Css.sizeBtn} ${theme.fontSize === size.value ? Css.sizeBtnActive : ''}`}
+                    style={{ fontSize: size.value }}
+                    onClick={() => updateTheme('fontSize', size.value)}
                   >
-                    {s.label}
+                    {size.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Background Image / Color */}
             <div className={Css.section}>
               <div className={Css.sectionHeader}>
                 <h2><ion-icon name="image-outline" /> Fondo de la aplicación</h2>
@@ -533,17 +600,10 @@ export default function Configuracion() {
               </div>
             </div>
 
-            {/* Sliders */}
             <div className={Css.section}>
               <h2><ion-icon name="contrast-outline" /> Oscurecer fondo</h2>
               <div className={Css.sliderRow}>
-                <input
-                  type="range"
-                  min="0" max="0.95" step="0.05"
-                  value={theme.bgOverlay}
-                  onChange={e => updateTheme('bgOverlay', e.target.value)}
-                  className={Css.slider}
-                />
+                <input type="range" min="0" max="0.95" step="0.05" value={theme.bgOverlay} onChange={(e) => updateTheme('bgOverlay', e.target.value)} className={Css.slider} />
                 <span className={Css.sliderValue}>{Math.round(theme.bgOverlay * 100)}%</span>
               </div>
             </div>
@@ -551,24 +611,14 @@ export default function Configuracion() {
             <div className={Css.section}>
               <h2><ion-icon name="text-outline" /> Intensidad del texto</h2>
               <div className={Css.sliderRow}>
-                <input
-                  type="range"
-                  min="0.1" max="1" step="0.05"
-                  value={theme.textOpacity}
-                  onChange={e => updateTheme('textOpacity', e.target.value)}
-                  className={Css.slider}
-                />
+                <input type="range" min="0.1" max="1" step="0.05" value={theme.textOpacity} onChange={(e) => updateTheme('textOpacity', e.target.value)} className={Css.slider} />
                 <span className={Css.sliderValue}>{Math.round(theme.textOpacity * 100)}%</span>
               </div>
             </div>
 
             <div className={Css.actions}>
-              <button className={Css.btnReset} onClick={resetTheme}>
-                Restablecer
-              </button>
-              <button className={Css.btnSave} onClick={saveTheme}>
-                {themeSaved ? '¡Guardado!' : 'Guardar apariencia'}
-              </button>
+              <button className={Css.btnReset} onClick={resetTheme}>Restablecer</button>
+              <button className={Css.btnSave} onClick={saveTheme}>{themeSaved ? '¡Guardado!' : 'Guardar apariencia'}</button>
             </div>
           </div>
         )}

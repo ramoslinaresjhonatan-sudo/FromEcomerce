@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPages    from './Pages/landingPages'
 import Login           from './Pages/Login/Login'
 import Register        from './Pages/Login/Register'
@@ -10,7 +10,7 @@ import Categorias      from './Pages/Categorias/Categorias'
 import Usuarios        from './Pages/Usuarios/Usuarios'
 import Empresas        from './Pages/Empresas/Empresas'
 import Suscripciones   from './Pages/Suscripciones/Suscripciones'
-import Sucursales      from './Pages/Sucursales/Sucursales'
+import Stores          from './Pages/Stores/Stores'
 import Almacenes       from './Pages/Almacenes/Almacenes'
 import RolesPermisos   from './Pages/RolesPermisos/RolesPermisos'
 import Archivos        from './Pages/Archivos/Archivos'
@@ -18,6 +18,8 @@ import FormularioPlanes from './Pages/InscricionSusCricion/FormularioPlanes'
 import Pago            from './Pages/InscricionSusCricion/Pago'
 import Tienda          from './Pages/TiendaCliente/tienda/Tienda'
 import { CartProvider } from './Pages/TiendaCliente/CartContext'
+import { authService } from './services/api'
+import { canAccessDashboard, isPlatformAdmin, isStoreAdmin } from './utils/access'
 import './App.css'
 
 const hexToRgb = (hex) => {
@@ -80,17 +82,17 @@ function App() {
           <Route path="/"              element={<LandingPages />} />
           <Route path="/login"         element={<Login />} />
           <Route path="/register"      element={<Register />} />
-          <Route path="/inicio"        element={<Inicio />} />
-          <Route path="/configuracion" element={<Configuracion />} />
-          <Route path="/categorias"    element={<Categorias />} />
-          <Route path="/productos"     element={<Productos />} />
-          <Route path="/usuarios"      element={<Usuarios />} />
-          <Route path="/empresas"      element={<Empresas />} />
-          <Route path="/suscripciones" element={<Suscripciones />} />
-          <Route path="/sucursales"    element={<Sucursales />} />
-          <Route path="/almacenes"     element={<Almacenes />} />
-          <Route path="/roles-permisos" element={<RolesPermisos />} />
-          <Route path="/archivos"      element={<Archivos />} />
+          <Route path="/inicio"        element={<ProtectedRoute allow={canAccessDashboard}><Inicio /></ProtectedRoute>} />
+          <Route path="/configuracion" element={<ProtectedRoute allow={canAccessDashboard}><Configuracion /></ProtectedRoute>} />
+          <Route path="/categorias"    element={<ProtectedRoute allow={isPlatformAdmin}><Categorias /></ProtectedRoute>} />
+          <Route path="/productos"     element={<ProtectedRoute allow={isPlatformAdmin}><Productos /></ProtectedRoute>} />
+          <Route path="/usuarios"      element={<ProtectedRoute allow={isPlatformAdmin}><Usuarios /></ProtectedRoute>} />
+          <Route path="/empresas"      element={<ProtectedRoute allow={isPlatformAdmin}><Empresas /></ProtectedRoute>} />
+          <Route path="/suscripciones" element={<ProtectedRoute allow={canAccessDashboard}><Suscripciones /></ProtectedRoute>} />
+          <Route path="/stores"        element={<ProtectedRoute allow={(user) => isPlatformAdmin(user) || isStoreAdmin(user)}><Stores /></ProtectedRoute>} />
+          <Route path="/almacenes"     element={<ProtectedRoute allow={(user) => isPlatformAdmin(user) || isStoreAdmin(user)}><Almacenes /></ProtectedRoute>} />
+          <Route path="/roles-permisos" element={<ProtectedRoute allow={isPlatformAdmin}><RolesPermisos /></ProtectedRoute>} />
+          <Route path="/archivos"      element={<ProtectedRoute allow={isPlatformAdmin}><Archivos /></ProtectedRoute>} />
           <Route path="/formulario-planes" element={<FormularioPlanes />} />
           <Route path="/pago" element={<Pago />} />
 
@@ -99,6 +101,20 @@ function App() {
       </CartProvider>
     </Router>
   )
+}
+
+function ProtectedRoute({ allow, children }) {
+  const user = authService.getUser()
+
+  if (!user || !authService.isAuthenticated()) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!allow(user)) {
+    return <Navigate to="/inicio" replace />
+  }
+
+  return children
 }
 
 export default App
