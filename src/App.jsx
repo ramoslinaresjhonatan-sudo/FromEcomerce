@@ -16,7 +16,7 @@ import RolesPermisos   from './Pages/RolesPermisos/RolesPermisos'
 import Archivos        from './Pages/Archivos/Archivos'
 import FormularioPlanes from './Pages/InscricionSusCricion/FormularioPlanes'
 import Pago            from './Pages/InscricionSusCricion/Pago'
-import Tienda          from './Pages/TiendaCliente/tienda/Tienda'
+import Tienda          from './Pages/TiendaCliente/Tienda/Tienda'
 import { CartProvider } from './Pages/TiendaCliente/CartContext'
 import './App.css'
 
